@@ -7,7 +7,7 @@ Estimator::Estimator(int _nsteps, int _nbins, bool _improved) : nbins(_nbins), i
     icount = 0; idx = 0;
 
     // initialize accumulators for binning
-    accmltr["en"] = 0.0; accmltr["en2"] = 0.0; accmltr["cv_kin"] = 0.0;
+    accmltr["en"] = 0.0;
 
     // initialize accumulators for improved method to calculate energy and specific heat.
     // Ref: J.Chem.Phys.116,5951(2002); J.Chem.Phys.117,3020(2002).
@@ -16,10 +16,12 @@ Estimator::Estimator(int _nsteps, int _nbins, bool _improved) : nbins(_nbins), i
         accmltr["f_cv"] = 0.0; accmltr["f_cv^2"] = 0.0; accmltr["cvpf_cv"] = 0.0; accmltr["cvp"] = 0.0;
         accmltr["e^-bdv"] = 0.0;
     }
+    else {
+        accmltr["en2"] = 0.0; accmltr["cv_kin"] = 0.0;
+    }
 
     // initialize binned estimators for statistics
-    estimators["<E>"].resize(len, 0.0); estimators["<E^2>"].resize(len, 0.0);
-    estimators["<Cv_kin>"].resize(len, 0.0); estimators["<Cv>"].resize(len, 0.0);
+    estimators["<E>"].resize(len, 0.0); estimators["<Cv>"].resize(len, 0.0);
 }
 
 Estimator::~Estimator() {
@@ -79,6 +81,7 @@ void Estimator::accumulate(Path path) {
             idx++;
         }
     }
+    // primitive accumulators
     else {
         accmltr.at("en2") += toten * toten;
         accmltr.at("cv_kin") += (nbeads / (2.0 * beta) - 2.0 * esprng) / beta;
@@ -88,8 +91,6 @@ void Estimator::accumulate(Path path) {
             accmltr.at("en") /= nbins; accmltr.at("en2") /= nbins; accmltr.at("cv_kin") /= nbins;
 
             estimators.at("<E>").at(idx) = accmltr.at("en");
-            estimators.at("<E^2>").at(idx) = accmltr.at("en2");
-            estimators.at("<Cv_kin>").at(idx) = accmltr.at("cv_kin");
             estimators.at("<Cv>").at(idx) = beta * beta
                 * (accmltr.at("en2") - accmltr.at("en") * accmltr.at("en") + accmltr.at("cv_kin"));
 
@@ -97,7 +98,6 @@ void Estimator::accumulate(Path path) {
             idx++;
         }
     }
-
 }
 
 void Estimator::output() {
