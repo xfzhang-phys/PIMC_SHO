@@ -14,6 +14,7 @@ class Path {
 public:
     int nbeads;     // number of time-slices
     double beta;    // inversion temperature
+    double pos_com; // position of center of mass
     vector<double> pos;
     map<string, double> en;
 

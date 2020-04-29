@@ -11,7 +11,9 @@ Path::Path(int _nbeads, double _beta) : nbeads(_nbeads), beta(_beta) {
     pos.resize(nbeads);
     for (int ibead = 0; ibead < nbeads; ibead++) {
         pos.at(ibead) = 0.0;
+        pos_com += pos.at(ibead);
     }
+    pos_com /= nbeads;
     // energy estimators
     en["esprng"] = 0.0; en["ekin"] = 0.0; en["epot"] = 0.0; en["toten"] = 0.0;
     calc_toten();
@@ -70,9 +72,12 @@ void Path::move_bisection(mt19937_64* gen) {
 
     if (acc) {
         // update configuration
+        pos_com = 0.0;
         for (int ibead = 0; ibead < nbeads; ibead++) {
             pos.at(ibead) = tmp_pos.at(ibead);
+            pos_com += pos.at(ibead);
         }
+        pos_com /= nbeads;
         // update energy
         en.at("esprng") = calc_kin();
         en.at("ekin") = 1.0 * nbeads / (2.0 * beta) - en.at("esprng");
@@ -97,6 +102,7 @@ void Path::move_com(double max_disp, mt19937_64* gen) {
         for (int ibead = 0; ibead < nbeads; ibead++) {
             pos.at(ibead) += disp;
         }
+        pos_com += disp;
         // update energy
         en.at("epot") += en_dpot;
         en.at("toten") += en_dpot;
