@@ -171,7 +171,7 @@ void Estimator::output() {
     pair<double, double> en, cv;
     FILE* fp;
 
-    fopen_s(&fp, "estimator.dat", "w");
+    fp = fopen("estimator.dat", "w");
     fprintf(fp, "# <E>                <Cv>\n");
     for (int i = 0; i < len; i++) {
          fprintf(fp, "%.12lf    %.12lf\n", estimators.at("<E>").at(i), estimators.at("<Cv>").at(i));
