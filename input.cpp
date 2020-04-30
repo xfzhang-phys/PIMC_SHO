@@ -1,7 +1,7 @@
 #include "input.h"
 
 Input::Input(int _nbeads, int _nsteps, int _nthermal, int _nbins, double _temp, double _max_disp, string _method) :
-    nbeads(_nbeads), nsteps(_nsteps), nthermal(_nthermal), nbins(_nbeads), temp(_temp), max_disp(_max_disp), method(_method) {
+    nbeads(_nbeads), nsteps(_nsteps), nthermal(_nthermal), nbins(_nbins), temp(_temp), max_disp(_max_disp), method(_method) {
 
     beta = 1.0 / temp;
 }
