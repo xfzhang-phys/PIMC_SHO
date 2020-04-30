@@ -190,6 +190,16 @@ double Estimator::calc_pot(double pos) {
     return 0.25 * pos * pos;
 }
 
+double Estimator::calc_kcv(Path path) {
+    double ycp = 0.0;
+    for (int i = 0; i < path.nbeads; i++) {
+        ycp += (path.pos.at(i) - path.pos_com) * 0.5 * path.pos.at(i);
+    }
+    ycp /= 2 * path.nbeads;
+
+    return ycp + 0.5 / path.beta;
+}
+
 pair<double, double> Estimator::calc_avg_and_err_jackknife(vector<double> data) {
     double avg = 0.0;
 
@@ -214,14 +224,4 @@ pair<double, double> Estimator::calc_avg_and_err_jackknife(vector<double> data) 
     double err = sqrt(((len - 1.0) / len) * var);
 
     return { avg, err };
-}
-
-double Estimator::calc_kcv(Path path) {
-    double ycp = 0.0;
-    for (int i = 0; i < path.nbeads; i++) {
-        ycp += (path.pos.at(i) - path.pos_com) * 0.5 * path.pos.at(i);
-    }
-    ycp /= 2 * path.nbeads;
-
-    return ycp + 0.5 / path.beta;
 }
