@@ -1,18 +1,18 @@
 #include <iostream>
 #include <string>
-//#include <chrono>
+#include <chrono>
 #include "path.h"
 #include "estimator.h"
 #include "input.h"
 
-//using namespace std::chrono;
+using namespace std::chrono;
 
 int main(int argc, char** argv) {
 
     // timer
-    //auto start = steady_clock::now();
+    auto start = steady_clock::now();
 
-    Input input_params(32, 1e6, 2e5, 1e4, 0.5, 0.5, "T");
+    Input input_params(16, 1000000, 200000, 10000, 0.5, 0.5, "T");
     // read parameters from command line
     if (argc > 1) {
         input_params.get_input_params(argc, argv);
@@ -57,9 +57,9 @@ int main(int argc, char** argv) {
     estimator.output();
 
     // timer
-    //auto end = steady_clock::now();
-    //auto elapsed_time = duration_cast<seconds> (end - start);
-    //cout << "Elapsed time: " << elapsed_time.count() << "s." << endl;
+    auto end = steady_clock::now();
+    auto elapsed_time = duration_cast<seconds> (end - start);
+    cout << "Elapsed time: " << elapsed_time.count() << "s." << endl;
     int tmp;
     cin >> tmp;
 }
