@@ -17,9 +17,11 @@ Estimator::Estimator(int _nsteps, int _nbins, string _method) : nbins(_nbins), m
         accmltr["e^-bdv"] = 0.0;
     }
     else if (method == "PCV") {
-        accmltr["f_e"] = 0.0; accmltr["f_e^2"] = 0.0; accmltr["ef_e"] = 0.0;
         accmltr["f_cv"] = 0.0; accmltr["f_cv^2"] = 0.0; accmltr["cvpf_cv"] = 0.0; accmltr["cvp"] = 0.0;
         accmltr["e^-bdv"] = 0.0;
+    }
+    else if (method == "CV") {
+        accmltr["etecv"] = 0.0; 
     }
     else {
         accmltr["en2"] = 0.0; accmltr["cv_kin"] = 0.0;
@@ -40,7 +42,7 @@ void Estimator::accumulate(Path path) {
     // for classical MC, the estimators are forced to primitive method
     if (nbeads == 1) method = "T";
 
-    // projected thermodynamical accumulator
+    // projected thermodynamic accumulator
     if (method == "PT") {
         double Ge = 0.5 / beta;
         double Gcv = 0.75 / (beta * beta);
@@ -87,7 +89,6 @@ void Estimator::accumulate(Path path) {
     }
     // projected centroid viral estimators
     else if (method == "PCV") {
-        double Ge = 0.5 / beta;
         double Gcv = 0.75 / (beta * beta);
         double ekin = path.en.at("ekin");
         double epot = path.en.at("epot");
@@ -96,13 +97,9 @@ void Estimator::accumulate(Path path) {
         double dV = calc_pot(path.pos_com) - epot;
         double ebdv = exp(-1.0 * beta * dV);
         double cvp = toten * ecv + 1.0 / (2.0 * beta * beta);
-        double f_e = ekcv * ebdv;
         double f_cv = (ekin * (0.5 / beta) + 0.5 / (beta * beta)) * ebdv;
 
         accmltr.at("en") += ecv;
-        accmltr.at("f_e") += f_e;
-        accmltr.at("f_e^2") += f_e * f_e;
-        accmltr.at("ef_e") += ecv * f_e;
         accmltr.at("f_cv") += f_cv;
         accmltr.at("f_cv^2") += f_cv * f_cv;
         accmltr.at("cvp") += cvp;
@@ -112,27 +109,45 @@ void Estimator::accumulate(Path path) {
 
         if (icount % nbins == 0) {
             accmltr.at("en") /= nbins;
-            accmltr.at("f_e") /= nbins; accmltr.at("f_e^2") /= nbins; accmltr.at("ef_e") /= nbins;
             accmltr.at("f_cv") /= nbins; accmltr.at("f_cv^2") /= nbins; accmltr.at("cvp") /= nbins;
             accmltr.at("cvpf_cv") /= nbins; accmltr.at("e^-bdv") /= nbins;
 
-            double alpha_e = (accmltr.at("ef_e") - accmltr.at("en") * accmltr.at("f_e"))
-                / (accmltr.at("f_e^2") - accmltr.at("f_e") * accmltr.at("f_e"));
             double alpha_cv = (accmltr.at("cvpf_cv") - accmltr.at("cvp") * accmltr.at("f_cv"))
                 / (accmltr.at("f_cv^2") - accmltr.at("f_cv") * accmltr.at("f_cv"));
 
-            estimators.at("<E>").at(idx) = accmltr.at("en") - alpha_e * accmltr.at("f_e") + alpha_e * Ge * accmltr.at("e^-bdv");
+            estimators.at("<E>").at(idx) = accmltr.at("en");
             estimators.at("<Cv>").at(idx) = (accmltr.at("cvp") - alpha_cv * accmltr.at("f_cv") + alpha_cv * Gcv * accmltr.at("e^-bdv")
-                - estimators.at("<E>").at(idx) * estimators.at("<E>").at(idx)) * beta * beta;
+                - accmltr.at("en") * accmltr.at("en")) * beta * beta;
 
             accmltr.at("en") = 0.0;
-            accmltr.at("f_e") = 0.0; accmltr.at("f_e^2") = 0.0; accmltr.at("ef_e") = 0.0;
             accmltr.at("f_cv") = 0.0; accmltr.at("f_cv^2") = 0.0; accmltr.at("cvp") = 0.0;
             accmltr.at("cvpf_cv") = 0.0; accmltr.at("e^-bdv") = 0.0;
             idx++;
         }
     }
-    // primitive accumulators
+    // centroid viral estimators
+    else if (method == "CV") {
+        double epot = path.en.at("epot");
+        double ekcv = calc_kcv(path);
+        double ecv = ekcv + epot;
+
+        accmltr.at("en") += ecv;
+        accmltr.at("etecv") += toten * ecv;
+        icount++;
+
+        if (icount % nbins == 0) {
+            accmltr.at("en") /= nbins;
+            accmltr.at("etecv") /= nbins;
+
+            estimators.at("<E>").at(idx) = accmltr.at("en");
+            estimators.at("<Cv>").at(idx) = (accmltr.at("etecv") - accmltr.at("en") * accmltr.at("en") + 0.5 / (beta*beta)) * beta * beta;
+
+            accmltr.at("en") = 0.0;
+            accmltr.at("etecv") = 0.0;
+            idx++;
+        }
+    }
+    // primitive (thermodynamic) accumulators
     else {
         accmltr.at("en") += toten;
         accmltr.at("en2") += toten * toten;
@@ -156,12 +171,12 @@ void Estimator::output() {
     pair<double, double> en, cv;
     FILE* fp;
 
-    // fp = fopen("estimator.dat", "w");
-    // fprintf(fp, "# <E>                <Cv>\n");
-    // for (int i = 0; i < len; i++) {
-    //      fprintf(fp, "%.12lf    %.12lf\n", estimators.at("<E>").at(i), estimators.at("<Cv>").at(i));
-    // }
-    // fclose(fp);
+    fopen_s(&fp, "estimator.dat", "w");
+    fprintf(fp, "# <E>                <Cv>\n");
+    for (int i = 0; i < len; i++) {
+         fprintf(fp, "%.12lf    %.12lf\n", estimators.at("<E>").at(i), estimators.at("<Cv>").at(i));
+    }
+    fclose(fp);
 
     // Simple output (error analysis by jackknife method)
     en = calc_avg_and_err_jackknife(estimators.at("<E>"));

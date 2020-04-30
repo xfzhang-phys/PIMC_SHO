@@ -24,7 +24,7 @@ private:
     int len;    // number of binned data
     int icount; // counter for data accumulation
     int idx;
-    // choose estimators: T (thermodynamics), PT (projected thermodynamics) and PCV (projected centroid viral)
+    // choose estimators: T (thermodynamic), CV (centroid viral) and their projected version PT, PCV
     string method;
 
     map<string, double> accmltr;    // accumulator
