@@ -5,22 +5,23 @@
 
 
 int main(int argc, char** argv) {
-    int nbeads = 32;
+    int nbeads = 16;
     int nsteps = 1e6;
     int nthermal = 2e5;
     int nbins = 1e4;
     double temp = 0.5;
     double beta = 1.0 / temp;
     double max_disp = 0.5;
-    bool improved = false;
+    string method = "PCV";
 
     // read parameters from command line
     if (argc > 1) {
-        cout << "You should type arguments like: pimc.x [temp] [nbeads] [nsteps] [nthermal]" << endl;
+        cout << "You should type arguments like: pimc.x [temp] [nbeads] [nsteps] [nthermal] [method]" << endl;
         temp = stof(string(argv[1])); beta = 1.0 / temp;
         nbeads = stoi(string(argv[2]));
         nsteps = stoi(string(argv[3]));  nbins = nsteps / 100; 
         nthermal = stoi(string(argv[4]));
+        method = string(argv[5]);
     }
 
     // random number generator
@@ -28,7 +29,7 @@ int main(int argc, char** argv) {
     mt19937_64 gen(r());
 
     Path path(nbeads, beta);
-    Estimator estimator(nsteps, nbins, improved);
+    Estimator estimator(nsteps, nbins, method);
 
     // thermalization
     for (int istep = 0; istep < nthermal; istep++) {

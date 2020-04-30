@@ -13,7 +13,7 @@ using namespace std;
 
 class Estimator {
 public:
-    Estimator(int _nsteps, int _nbins, bool _improved=false);
+    Estimator(int _nsteps, int _nbins, string _method = "T");
     ~Estimator();
 
     void accumulate(Path _path);
@@ -24,12 +24,14 @@ private:
     int len;    // number of binned data
     int icount; // counter for data accumulation
     int idx;
-    bool improved;  // improved method for energy and specific heat estimators
+    // choose estimators: T (thermodynamics), PT (projected thermodynamics) and PCV (projected centroid viral)
+    string method;
 
     map<string, double> accmltr;    // accumulator
     map<string, vector<double>> estimators;
 
     double calc_pot(double _pos);
+    double calc_kcv(Path _path);
     pair<double, double> calc_avg_and_err_jackknife(vector<double> _data);
 };
 
