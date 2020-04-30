@@ -10,8 +10,8 @@ Path::Path(int _nbeads, double _beta) : nbeads(_nbeads), beta(_beta) {
     // initialize configuration
     pos.resize(nbeads);
     for (int ibead = 0; ibead < nbeads; ibead++) {
-        pos.at(ibead) = 0.0;
-        pos_com += pos.at(ibead);
+        pos[ibead] = 0.0;
+        pos_com += pos[ibead];
     }
     pos_com /= nbeads;
     // energy estimators
@@ -38,7 +38,7 @@ void Path::move_bisection(mt19937_64* gen) {
 
     tmp_pos.resize(nbeads);
     for (int ibead = 0; ibead < nbeads; ibead++) {
-        tmp_pos.at(ibead) = pos.at(ibead);
+        tmp_pos[ibead] = pos[ibead];
     }
 
     int bs_ibead = uniform_dist_int(*gen);
@@ -54,9 +54,9 @@ void Path::move_bisection(mt19937_64* gen) {
             int ibead = (ilb + bs_ibead) % nbeads;
             int prev_bead = ((ilb - lbead) + bs_ibead) % nbeads;
             int next_bead = ((ilb + lbead) + bs_ibead) % nbeads;
-            tmp_pos.at(ibead) = 0.5 * (tmp_pos.at(prev_bead) + tmp_pos.at(next_bead))
+            tmp_pos[ibead] = 0.5 * (tmp_pos[prev_bead] + tmp_pos[next_bead])
                 + max_disp * normal_dist(*gen);
-            en_dpot += calc_pot(tmp_pos.at(ibead)) - calc_pot(pos.at(ibead));
+            en_dpot += calc_pot(tmp_pos[ibead]) - calc_pot(pos[ibead]);
         }
         en_dpot *= lbead;
         en_dpot += 0.5 * en_dpot_prev;
@@ -74,15 +74,15 @@ void Path::move_bisection(mt19937_64* gen) {
         // update configuration
         pos_com = 0.0;
         for (int ibead = 0; ibead < nbeads; ibead++) {
-            pos.at(ibead) = tmp_pos.at(ibead);
-            pos_com += pos.at(ibead);
+            pos[ibead] = tmp_pos[ibead];
+            pos_com += pos[ibead];
         }
         pos_com /= nbeads;
         // update energy
-        en.at("esprng") = calc_kin();
-        en.at("ekin") = 1.0 * nbeads / (2.0 * beta) - en.at("esprng");
-        en.at("epot") += en_dpot;
-        en.at("toten") = en.at("ekin") + en.at("epot");
+        en["esprng"] = calc_kin();
+        en["ekin"] = 1.0 * nbeads / (2.0 * beta) - en["esprng"];
+        en["epot"] += en_dpot;
+        en["toten"] = en["ekin"] + en["epot"];
     }
 }
 
@@ -94,18 +94,18 @@ void Path::move_com(double max_disp, mt19937_64* gen) {
 
     double disp = max_disp * (1.0 - 2.0 * uniform_dist(*gen));
     for (int ibead = 0; ibead < nbeads; ibead++) {
-        en_dpot += calc_pot(pos.at(ibead)+disp) - calc_pot(pos.at(ibead));
+        en_dpot += calc_pot(pos[ibead]+disp) - calc_pot(pos[ibead]);
     }
 
     if (uniform_dist(*gen) < exp(-1.0*beta*en_dpot)) {
         // update configuration
         for (int ibead = 0; ibead < nbeads; ibead++) {
-            pos.at(ibead) += disp;
+            pos[ibead] += disp;
         }
         pos_com += disp;
         // update energy
-        en.at("epot") += en_dpot;
-        en.at("toten") += en_dpot;
+        en["epot"] += en_dpot;
+        en["toten"] += en_dpot;
         accepted_com_trials++;
     }
     all_com_trials++;
@@ -124,7 +124,7 @@ double Path::calc_kin() {
 
     for (int ibead = 0; ibead < nbeads; ibead++) {
         int next_bead = (ibead + 1) % nbeads;
-        en_spring += (pos.at(next_bead) - pos.at(ibead)) * (pos.at(next_bead) - pos.at(ibead));
+        en_spring += (pos[next_bead] - pos[ibead]) * (pos[next_bead] - pos[ibead]);
     }
 
     return 0.25 * omega_p2 * en_spring;
@@ -133,11 +133,11 @@ double Path::calc_kin() {
 void Path::calc_toten() {
 
     for (int ibead = 0; ibead < nbeads; ibead++) {
-        en.at("epot") += calc_pot(pos.at(ibead));
+        en["epot"] += calc_pot(pos[ibead]);
     }
-    en.at("esprng") = calc_kin();
-    en.at("ekin") = 1.0 * nbeads / (2.0 * beta) - en.at("esprng");
-    en.at("toten") = en.at("ekin") + en.at("epot");
+    en["esprng"] = calc_kin();
+    en["ekin"] = 1.0 * nbeads / (2.0 * beta) - en["esprng"];
+    en["toten"] = en["ekin"] + en["epot"];
 }
 
 void Path::update_com_max_disp(double* max_disp) {

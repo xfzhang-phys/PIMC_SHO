@@ -37,8 +37,8 @@ Estimator::~Estimator() {
 void Estimator::accumulate(Path path) {
     int nbeads = path.nbeads;
     double beta = path.beta;
-    double toten = path.en.at("toten");
-    double esprng = path.en.at("esprng");
+    double toten = path.en["toten"];
+    double esprng = path.en["esprng"];
     // for classical MC, the estimators are forced to primitive method
     if (nbeads == 1) method = "T";
 
@@ -46,52 +46,52 @@ void Estimator::accumulate(Path path) {
     if (method == "PT") {
         double Ge = 0.5 / beta;
         double Gcv = 0.75 / (beta * beta);
-        double ekin = path.en.at("ekin");
-        double epot = path.en.at("epot");
+        double ekin = path.en["ekin"];
+        double epot = path.en["epot"];
         double dV = calc_pot(path.pos_com) - epot;
         double ebdv = exp(-1.0 * beta * dV);
         double cvp = toten * toten + (nbeads / (2.0 * beta) - 2.0 * esprng) / beta;
         double f_e = ekin * ebdv;
         double f_cv = (ekin * ekin + (nbeads / (2.0 * beta) - 2.0 * esprng) / beta) * ebdv;
    
-        accmltr.at("en") += toten;
-        accmltr.at("f_e") += f_e;
-        accmltr.at("f_e^2") += f_e * f_e;
-        accmltr.at("ef_e") += toten * f_e;
-        accmltr.at("f_cv") += f_cv;
-        accmltr.at("f_cv^2") += f_cv * f_cv;
-        accmltr.at("cvp") += cvp;
-        accmltr.at("cvpf_cv") += cvp * f_cv;
-        accmltr.at("e^-bdv") += ebdv;
+        accmltr["en"] += toten;
+        accmltr["f_e"] += f_e;
+        accmltr["f_e^2"] += f_e * f_e;
+        accmltr["ef_e"] += toten * f_e;
+        accmltr["f_cv"] += f_cv;
+        accmltr["f_cv^2"] += f_cv * f_cv;
+        accmltr["cvp"] += cvp;
+        accmltr["cvpf_cv"] += cvp * f_cv;
+        accmltr["e^-bdv"] += ebdv;
         icount++;
 
         if (icount % nbins == 0) {
-            accmltr.at("en") /= nbins;
-            accmltr.at("f_e") /= nbins; accmltr.at("f_e^2") /= nbins; accmltr.at("ef_e") /= nbins;
-            accmltr.at("f_cv") /= nbins; accmltr.at("f_cv^2") /= nbins; accmltr.at("cvp") /= nbins;
-            accmltr.at("cvpf_cv") /= nbins; accmltr.at("e^-bdv") /= nbins;
+            accmltr["en"] /= nbins;
+            accmltr["f_e"] /= nbins; accmltr["f_e^2"] /= nbins; accmltr["ef_e"] /= nbins;
+            accmltr["f_cv"] /= nbins; accmltr["f_cv^2"] /= nbins; accmltr["cvp"] /= nbins;
+            accmltr["cvpf_cv"] /= nbins; accmltr["e^-bdv"] /= nbins;
 
-            double alpha_e = (accmltr.at("ef_e") - accmltr.at("en") * accmltr.at("f_e"))
-                / (accmltr.at("f_e^2") - accmltr.at("f_e") * accmltr.at("f_e"));
-            double alpha_cv = (accmltr.at("cvpf_cv") - accmltr.at("cvp") * accmltr.at("f_cv"))
-                / (accmltr.at("f_cv^2") - accmltr.at("f_cv") * accmltr.at("f_cv"));
+            double alpha_e = (accmltr["ef_e"] - accmltr["en"] * accmltr["f_e"])
+                / (accmltr["f_e^2"] - accmltr["f_e"] * accmltr["f_e"]);
+            double alpha_cv = (accmltr["cvpf_cv"] - accmltr["cvp"] * accmltr["f_cv"])
+                / (accmltr["f_cv^2"] - accmltr["f_cv"] * accmltr["f_cv"]);
 
-            estimators.at("<E>").at(idx) = accmltr.at("en") - alpha_e * accmltr.at("f_e") + alpha_e * Ge * accmltr.at("e^-bdv");
-            estimators.at("<Cv>").at(idx) = (accmltr.at("cvp") - alpha_cv * accmltr.at("f_cv") + alpha_cv * Gcv * accmltr.at("e^-bdv")
-                - estimators.at("<E>").at(idx) * estimators.at("<E>").at(idx)) * beta * beta;
+            estimators["<E>"][idx] = accmltr["en"] - alpha_e * accmltr["f_e"] + alpha_e * Ge * accmltr["e^-bdv"];
+            estimators["<Cv>"][idx] = (accmltr["cvp"] - alpha_cv * accmltr["f_cv"] + alpha_cv * Gcv * accmltr["e^-bdv"]
+                - estimators["<E>"][idx] * estimators["<E>"][idx]) * beta * beta;
 
-            accmltr.at("en") = 0.0;
-            accmltr.at("f_e") = 0.0; accmltr.at("f_e^2") = 0.0; accmltr.at("ef_e") = 0.0;
-            accmltr.at("f_cv") = 0.0; accmltr.at("f_cv^2") = 0.0; accmltr.at("cvp") = 0.0;
-            accmltr.at("cvpf_cv") = 0.0; accmltr.at("e^-bdv") = 0.0;
+            accmltr["en"] = 0.0;
+            accmltr["f_e"] = 0.0; accmltr["f_e^2"] = 0.0; accmltr["ef_e"] = 0.0;
+            accmltr["f_cv"] = 0.0; accmltr["f_cv^2"] = 0.0; accmltr["cvp"] = 0.0;
+            accmltr["cvpf_cv"] = 0.0; accmltr["e^-bdv"] = 0.0;
             idx++;
         }
     }
     // projected centroid viral estimators
     else if (method == "PCV") {
         double Gcv = 0.75 / (beta * beta);
-        double ekin = path.en.at("ekin");
-        double epot = path.en.at("epot");
+        double ekin = path.en["ekin"];
+        double epot = path.en["epot"];
         double ekcv = calc_kcv(path);
         double ecv = ekcv + epot;
         double dV = calc_pot(path.pos_com) - epot;
@@ -99,69 +99,69 @@ void Estimator::accumulate(Path path) {
         double cvp = toten * ecv + 1.0 / (2.0 * beta * beta);
         double f_cv = (ekin * (0.5 / beta) + 0.5 / (beta * beta)) * ebdv;
 
-        accmltr.at("en") += ecv;
-        accmltr.at("f_cv") += f_cv;
-        accmltr.at("f_cv^2") += f_cv * f_cv;
-        accmltr.at("cvp") += cvp;
-        accmltr.at("cvpf_cv") += cvp * f_cv;
-        accmltr.at("e^-bdv") += ebdv;
+        accmltr["en"] += ecv;
+        accmltr["f_cv"] += f_cv;
+        accmltr["f_cv^2"] += f_cv * f_cv;
+        accmltr["cvp"] += cvp;
+        accmltr["cvpf_cv"] += cvp * f_cv;
+        accmltr["e^-bdv"] += ebdv;
         icount++;
 
         if (icount % nbins == 0) {
-            accmltr.at("en") /= nbins;
-            accmltr.at("f_cv") /= nbins; accmltr.at("f_cv^2") /= nbins; accmltr.at("cvp") /= nbins;
-            accmltr.at("cvpf_cv") /= nbins; accmltr.at("e^-bdv") /= nbins;
+            accmltr["en"] /= nbins;
+            accmltr["f_cv"] /= nbins; accmltr["f_cv^2"] /= nbins; accmltr["cvp"] /= nbins;
+            accmltr["cvpf_cv"] /= nbins; accmltr["e^-bdv"] /= nbins;
 
-            double alpha_cv = (accmltr.at("cvpf_cv") - accmltr.at("cvp") * accmltr.at("f_cv"))
-                / (accmltr.at("f_cv^2") - accmltr.at("f_cv") * accmltr.at("f_cv"));
+            double alpha_cv = (accmltr["cvpf_cv"] - accmltr["cvp"] * accmltr["f_cv"])
+                / (accmltr["f_cv^2"] - accmltr["f_cv"] * accmltr["f_cv"]);
 
-            estimators.at("<E>").at(idx) = accmltr.at("en");
-            estimators.at("<Cv>").at(idx) = (accmltr.at("cvp") - alpha_cv * accmltr.at("f_cv") + alpha_cv * Gcv * accmltr.at("e^-bdv")
-                - accmltr.at("en") * accmltr.at("en")) * beta * beta;
+            estimators["<E>"][idx] = accmltr["en"];
+            estimators["<Cv>"][idx] = (accmltr["cvp"] - alpha_cv * accmltr["f_cv"] + alpha_cv * Gcv * accmltr["e^-bdv"]
+                - accmltr["en"] * accmltr["en"]) * beta * beta;
 
-            accmltr.at("en") = 0.0;
-            accmltr.at("f_cv") = 0.0; accmltr.at("f_cv^2") = 0.0; accmltr.at("cvp") = 0.0;
-            accmltr.at("cvpf_cv") = 0.0; accmltr.at("e^-bdv") = 0.0;
+            accmltr["en"] = 0.0;
+            accmltr["f_cv"] = 0.0; accmltr["f_cv^2"] = 0.0; accmltr["cvp"] = 0.0;
+            accmltr["cvpf_cv"] = 0.0; accmltr["e^-bdv"] = 0.0;
             idx++;
         }
     }
     // centroid viral estimators
     else if (method == "CV") {
-        double epot = path.en.at("epot");
+        double epot = path.en["epot"];
         double ekcv = calc_kcv(path);
         double ecv = ekcv + epot;
 
-        accmltr.at("en") += ecv;
-        accmltr.at("etecv") += toten * ecv;
+        accmltr["en"] += ecv;
+        accmltr["etecv"] += toten * ecv;
         icount++;
 
         if (icount % nbins == 0) {
-            accmltr.at("en") /= nbins;
-            accmltr.at("etecv") /= nbins;
+            accmltr["en"] /= nbins;
+            accmltr["etecv"] /= nbins;
 
-            estimators.at("<E>").at(idx) = accmltr.at("en");
-            estimators.at("<Cv>").at(idx) = (accmltr.at("etecv") - accmltr.at("en") * accmltr.at("en") + 0.5 / (beta*beta)) * beta * beta;
+            estimators["<E>"][idx] = accmltr["en"];
+            estimators["<Cv>"][idx] = (accmltr["etecv"] - accmltr["en"] * accmltr["en"] + 0.5 / (beta*beta)) * beta * beta;
 
-            accmltr.at("en") = 0.0;
-            accmltr.at("etecv") = 0.0;
+            accmltr["en"] = 0.0;
+            accmltr["etecv"] = 0.0;
             idx++;
         }
     }
     // primitive (thermodynamic) accumulators
     else {
-        accmltr.at("en") += toten;
-        accmltr.at("en2") += toten * toten;
-        accmltr.at("cv_kin") += (nbeads / (2.0 * beta) - 2.0 * esprng) / beta;
+        accmltr["en"] += toten;
+        accmltr["en2"] += toten * toten;
+        accmltr["cv_kin"] += (nbeads / (2.0 * beta) - 2.0 * esprng) / beta;
         icount++;
 
         if (icount % nbins == 0) {
-            accmltr.at("en") /= nbins; accmltr.at("en2") /= nbins; accmltr.at("cv_kin") /= nbins;
+            accmltr["en"] /= nbins; accmltr["en2"] /= nbins; accmltr["cv_kin"] /= nbins;
 
-            estimators.at("<E>").at(idx) = accmltr.at("en");
-            estimators.at("<Cv>").at(idx) = beta * beta
-                * (accmltr.at("en2") - accmltr.at("en") * accmltr.at("en") + accmltr.at("cv_kin"));
+            estimators["<E>"][idx] = accmltr["en"];
+            estimators["<Cv>"][idx] = beta * beta
+                * (accmltr["en2"] - accmltr["en"] * accmltr["en"] + accmltr["cv_kin"]);
 
-            accmltr.at("en") = 0.0; accmltr.at("en2") = 0.0; accmltr.at("cv_kin") = 0.0;
+            accmltr["en"] = 0.0; accmltr["en2"] = 0.0; accmltr["cv_kin"] = 0.0;
             idx++;
         }
     }
@@ -174,13 +174,13 @@ void Estimator::output() {
     fp = fopen("estimator.dat", "w");
     fprintf(fp, "# <E>                <Cv>\n");
     for (int i = 0; i < len; i++) {
-         fprintf(fp, "%.12lf    %.12lf\n", estimators.at("<E>").at(i), estimators.at("<Cv>").at(i));
+         fprintf(fp, "%.12lf    %.12lf\n", estimators["<E>"][i], estimators["<Cv>"][i]);
     }
     fclose(fp);
 
     // Simple output (error analysis by jackknife method)
-    en = calc_avg_and_err_jackknife(estimators.at("<E>"));
-    cv = calc_avg_and_err_jackknife(estimators.at("<Cv>"));
+    en = calc_avg_and_err_jackknife(estimators["<E>"]);
+    cv = calc_avg_and_err_jackknife(estimators["<Cv>"]);
     
     cout << "E = " << en.first << " +/- " << en.second << endl;
     cout << "Cv = " << cv.first << " +/- " << cv.second << endl;
@@ -193,7 +193,7 @@ double Estimator::calc_pot(double pos) {
 double Estimator::calc_kcv(Path path) {
     double ycp = 0.0;
     for (int i = 0; i < path.nbeads; i++) {
-        ycp += (path.pos.at(i) - path.pos_com) * 0.5 * path.pos.at(i);
+        ycp += (path.pos[i] - path.pos_com) * 0.5 * path.pos[i];
     }
     ycp /= 2 * path.nbeads;
 
@@ -204,7 +204,7 @@ pair<double, double> Estimator::calc_avg_and_err_jackknife(vector<double> data) 
     double avg = 0.0;
 
     for (int i = 0; i < len; i++) {
-        avg += data.at(i);
+        avg += data[i];
     }
     avg /= len;
 
@@ -212,14 +212,14 @@ pair<double, double> Estimator::calc_avg_and_err_jackknife(vector<double> data) 
     vector<double> tmp;
     tmp.resize(len);
     for (int i = 0; i < len; i++) {
-        tmp.at(i) = (len * avg - data.at(i)) / (len - 1);
-        tmp_bar += tmp.at(i);
+        tmp[i] = (len * avg - data[i]) / (len - 1);
+        tmp_bar += tmp[i];
     }
     tmp_bar /= len;
 
     double var = 0.0;
     for (int i = 0; i < len; i++) {
-        var += (tmp.at(i) - tmp_bar) * (tmp.at(i) - tmp_bar);
+        var += (tmp[i] - tmp_bar) * (tmp[i] - tmp_bar);
     }
     double err = sqrt(((len - 1.0) / len) * var);
 

@@ -43,20 +43,22 @@ void Input::get_input_params(int argc, char** argv) {
             iarg += 2;
         }
         else if (string(argv[iarg]) == "-h") {
-            printf("-n :        total Monte Carlo sweeps\n");
-            printf("-w :        thermalizatoin sweeps\n");
-            printf("-d :        max step length\n");
-            printf("-t :        temperature in Kelvin\n");
-            printf("-b :        number of bins for error analysis\n");
-            printf("-p :        number of time-slices\n");
-            printf("-m :        choose method for estimators (T, PT, CV and PCV)\n");
-            printf("-h :        help\n");
+            cout << "-n :        total Monte Carlo sweeps" << endl;
+            cout << "-w :        thermalizatoin sweeps" << endl;
+            cout << "-d :        max step length" << endl;
+            cout << "-t :        temperature in Kelvin" << endl;
+            cout << "-b :        number of bins for error analysis" << endl;
+            cout << "-p :        number of time-slices" << endl;
+            cout << "-m :        choose method for estimators (T, PT, CV and PCV)" << endl;
+            cout << "-h :        help" << endl;
             exit(0);
         }
         else
         {
-            printf("Type -h for help.\n");
+            cout << "Type -h for help." << endl;
             exit(1);
         }
     }
+    // for classical monte carlo, estimators are forced to the primitive methods
+    if (nbeads == 1) method = "T";
 }

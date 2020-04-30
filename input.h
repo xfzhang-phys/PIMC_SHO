@@ -1,6 +1,7 @@
 #ifndef _INPUT_H_
 #define _INPUT_H_
 
+#include <iostream>
 #include <string>
 
 using namespace std;
