@@ -8,7 +8,10 @@
 #include <utility>
 #include "path.h"
 
-using namespace std;
+using std::string;
+using std::vector;
+using std::pair;
+using std::map;
 
 
 class Estimator {

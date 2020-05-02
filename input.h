@@ -4,7 +4,9 @@
 #include <iostream>
 #include <string>
 
-using namespace std;
+using std::string;
+using std::stoi;
+using std::stod;
 
 
 class Input {

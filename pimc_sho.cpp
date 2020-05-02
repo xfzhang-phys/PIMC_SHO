@@ -6,6 +6,8 @@
 #include "input.h"
 
 using namespace std::chrono;
+using std::random_device;
+
 
 int main(int argc, char** argv) {
     
@@ -58,5 +60,5 @@ int main(int argc, char** argv) {
     // timer
     auto end = steady_clock::now();
     auto elapsed_time = duration<double> (end - start);
-    cout << "Elapsed time: " << elapsed_time.count() << " s." << endl;
+    std::cout << "Elapsed time: " << elapsed_time.count() << " s." << std::endl;
 }

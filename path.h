@@ -7,7 +7,11 @@
 #include <string>
 #include <map>
 
-using namespace std;
+using std::mt19937_64;
+using std::uniform_int_distribution;
+using std::uniform_real_distribution;
+using std::normal_distribution;
+using std::vector;
 
 
 class Path {
@@ -15,8 +19,8 @@ public:
     int nbeads;     // number of time-slices
     double beta;    // inversion temperature
     double pos_com; // position of center of mass
-    vector<double> pos;
-    map<string, double> en;
+    std::vector<double> pos;
+    std::map<std::string, double> en;
 
     Path(int _nbeads, double _beta);
     ~Path();

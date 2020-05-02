@@ -182,8 +182,8 @@ void Estimator::output() {
     en = calc_avg_and_err_jackknife(estimators["<E>"]);
     cv = calc_avg_and_err_jackknife(estimators["<Cv>"]);
     
-    cout << "E = " << en.first << " +/- " << en.second << endl;
-    cout << "Cv = " << cv.first << " +/- " << cv.second << endl;
+    std::cout << "E = " << en.first << " +/- " << en.second << std::endl;
+    std::cout << "Cv = " << cv.first << " +/- " << cv.second << std::endl;
 }
 
 double Estimator::calc_pot(double pos) {

@@ -43,19 +43,19 @@ void Input::get_input_params(int argc, char** argv) {
             iarg += 2;
         }
         else if (string(argv[iarg]) == "-h") {
-            cout << "-n :        total Monte Carlo sweeps" << endl;
-            cout << "-w :        thermalizatoin sweeps" << endl;
-            cout << "-d :        max step length" << endl;
-            cout << "-t :        temperature in Kelvin" << endl;
-            cout << "-b :        number of bins for error analysis" << endl;
-            cout << "-p :        number of time-slices" << endl;
-            cout << "-m :        choose method for estimators (T, PT, CV and PCV)" << endl;
-            cout << "-h :        help" << endl;
+            std::cout << "-n :        total Monte Carlo sweeps" << std::endl;
+            std::cout << "-w :        thermalizatoin sweeps" << std::endl;
+            std::cout << "-d :        max step length" << std::endl;
+            std::cout << "-t :        temperature in Kelvin" << std::endl;
+            std::cout << "-b :        number of bins for error analysis" << std::endl;
+            std::cout << "-p :        number of time-slices" << std::endl;
+            std::cout << "-m :        choose method for estimators (T, PT, CV and PCV)" << std::endl;
+            std::cout << "-h :        help" << std::endl;
             exit(0);
         }
         else
         {
-            cout << "Type -h for help." << endl;
+            std::cout << "Type -h for help." << std::endl;
             exit(1);
         }
     }
