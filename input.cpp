@@ -1,7 +1,9 @@
 #include "input.h"
 
-Input::Input(int _nbeads, int _nsteps, int _nthermal, int _nbins, double _temp, double _max_disp, string _method) :
-    nbeads(_nbeads), nsteps(_nsteps), nthermal(_nthermal), nbins(_nbins), temp(_temp), max_disp(_max_disp), method(_method) {
+Input::Input(int _nbeads, int _nsteps, int _nthermal, int _nbins, double _temp, double _max_disp, 
+    double _hmin, double _hmax, double _hstep, string _method) :
+    nbeads(_nbeads), nsteps(_nsteps), nthermal(_nthermal), nbins(_nbins), temp(_temp), max_disp(_max_disp), 
+    hmin(_hmin), hmax(_hmax), hstep(_hstep), method(_method) {
 
     beta = 1.0 / temp;
 }
@@ -38,6 +40,12 @@ void Input::get_input_params(int argc, char** argv) {
             max_disp = stod(argv[iarg + 1]);
             iarg += 2;
         }
+        else if (string(argv[iarg]) == "-s") {
+            hmin = stod(argv[iarg + 1]);
+            hmax = stod(argv[iarg + 2]);
+            hstep = stod(argv[iarg + 3]);
+            iarg += 4;
+        }
         else if (string(argv[iarg]) == "-m") {
             method = string(argv[iarg + 1]);
             iarg += 2;
@@ -50,6 +58,7 @@ void Input::get_input_params(int argc, char** argv) {
             std::cout << "-b :        number of bins for error analysis" << std::endl;
             std::cout << "-p :        number of time-slices" << std::endl;
             std::cout << "-m :        choose method for estimators (T, PT, CV and PCV)" << std::endl;
+            std::cout << "-s :        make histogram with hmin, hmax and hstep parameters" << std::endl;
             std::cout << "-h :        help" << std::endl;
             exit(0);
         }

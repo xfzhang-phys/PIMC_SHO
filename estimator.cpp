@@ -17,10 +17,12 @@ Estimator::Estimator(int _nsteps, int _nbins, string _method) : nbins(_nbins), m
         accmltr["e^-bdv"] = 0.0;
     }
     else if (method == "PCV") {
+        accmltr["et"] = 0.0;
         accmltr["f_cv"] = 0.0; accmltr["f_cv^2"] = 0.0; accmltr["cvpf_cv"] = 0.0; accmltr["cvp"] = 0.0;
         accmltr["e^-bdv"] = 0.0;
     }
     else if (method == "CV") {
+        accmltr["et"] = 0.0;
         accmltr["etecv"] = 0.0; 
     }
     else {
@@ -100,6 +102,7 @@ void Estimator::accumulate(Path path) {
         double f_cv = (ekin * (0.5 / beta) + 0.5 / (beta * beta)) * ebdv;
 
         accmltr["en"] += ecv;
+        accmltr["et"] += toten;
         accmltr["f_cv"] += f_cv;
         accmltr["f_cv^2"] += f_cv * f_cv;
         accmltr["cvp"] += cvp;
@@ -108,7 +111,7 @@ void Estimator::accumulate(Path path) {
         icount++;
 
         if (icount % nbins == 0) {
-            accmltr["en"] /= nbins;
+            accmltr["en"] /= nbins; accmltr["et"] /= nbins;
             accmltr["f_cv"] /= nbins; accmltr["f_cv^2"] /= nbins; accmltr["cvp"] /= nbins;
             accmltr["cvpf_cv"] /= nbins; accmltr["e^-bdv"] /= nbins;
 
@@ -117,9 +120,9 @@ void Estimator::accumulate(Path path) {
 
             estimators["<E>"][idx] = accmltr["en"];
             estimators["<Cv>"][idx] = (accmltr["cvp"] - alpha_cv * accmltr["f_cv"] + alpha_cv * Gcv * accmltr["e^-bdv"]
-                - accmltr["en"] * accmltr["en"]) * beta * beta;
+                - accmltr["en"] * accmltr["et"]) * beta * beta;
 
-            accmltr["en"] = 0.0;
+            accmltr["en"] = 0.0; accmltr["et"] = 0.0;
             accmltr["f_cv"] = 0.0; accmltr["f_cv^2"] = 0.0; accmltr["cvp"] = 0.0;
             accmltr["cvpf_cv"] = 0.0; accmltr["e^-bdv"] = 0.0;
             idx++;
@@ -132,17 +135,20 @@ void Estimator::accumulate(Path path) {
         double ecv = ekcv + epot;
 
         accmltr["en"] += ecv;
+        accmltr["et"] += toten;
         accmltr["etecv"] += toten * ecv;
         icount++;
 
         if (icount % nbins == 0) {
             accmltr["en"] /= nbins;
+            accmltr["et"] /= nbins;
             accmltr["etecv"] /= nbins;
 
             estimators["<E>"][idx] = accmltr["en"];
-            estimators["<Cv>"][idx] = (accmltr["etecv"] - accmltr["en"] * accmltr["en"] + 0.5 / (beta*beta)) * beta * beta;
+            estimators["<Cv>"][idx] = (accmltr["etecv"] - accmltr["en"] * accmltr["et"] + 0.5 / (beta*beta)) * beta * beta;
 
             accmltr["en"] = 0.0;
+            accmltr["et"] = 0.0;
             accmltr["etecv"] = 0.0;
             idx++;
         }

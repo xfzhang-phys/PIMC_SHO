@@ -4,6 +4,7 @@
 #include "path.h"
 #include "estimator.h"
 #include "input.h"
+#include "histogram.h"
 
 using namespace std::chrono;
 using std::random_device;
@@ -14,7 +15,7 @@ int main(int argc, char** argv) {
     // timer
     auto start = steady_clock::now();
 
-    Input input_params(16, 1e6, 2e5, 1e4, 0.5, 0.5, "PCV");
+    Input input_params(16, 1e6, 2e5, 1e4, 0.5, 0.5, -2.0, 2.0, 0.01, "PCV");
     // read parameters from command line
     if (argc > 1) {
         input_params.get_input_params(argc, argv);
@@ -25,6 +26,7 @@ int main(int argc, char** argv) {
 
     Path path(input_params.nbeads, input_params.beta);
     Estimator estimator(input_params.nsteps, input_params.nbins, input_params.method);
+    Histogram histogram(input_params.hmin, input_params.hmax, input_params.hstep);
 
     // thermalization
     for (int istep = 0; istep < input_params.nthermal; istep++) {
@@ -49,6 +51,9 @@ int main(int argc, char** argv) {
         // accumulator
         estimator.accumulate(path);
 
+        // histogram
+        histogram.get_hist(path);
+
         // auto update max_disp
         if (istep % 100 == 0 && istep > 0) {
             path.update_com_max_disp(&(input_params.max_disp));
@@ -56,6 +61,7 @@ int main(int argc, char** argv) {
     }
 
     estimator.output();
+    histogram.output();
     
     // timer
     auto end = steady_clock::now();
