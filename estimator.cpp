@@ -1,10 +1,11 @@
 #include "estimator.h"
 
 
-Estimator::Estimator(int _nsteps, int _nbins, string _method) : nbins(_nbins), method(_method) {
+Estimator::Estimator(int _nsteps, int _nbins, int _nbeads, string _method) : nbins(_nbins), method(_method) {
     // initialize local variables
     len = _nsteps / nbins;
     icount = 0; idx = 0;
+    ccount = 0; cidx = 0;
 
     // initialize accumulators for binning
     accmltr["en"] = 0.0;
@@ -31,6 +32,10 @@ Estimator::Estimator(int _nsteps, int _nbins, string _method) : nbins(_nbins), m
 
     // initialize binned estimators for statistics
     estimators["<E>"].resize(len, 0.0); estimators["<Cv>"].resize(len, 0.0);
+
+    // initialize accumulator for correlation function
+    accmltr_ctau.resize(_nbeads, 0.0);
+    ctau.resize(len, vector<double>(_nbeads, 0.0));
 }
 
 Estimator::~Estimator() {
@@ -173,10 +178,32 @@ void Estimator::accumulate(Path path) {
     }
 }
 
+void Estimator::accumulate_ctau(Path path) {
+    int taup;
+
+    for (int dtau = 0; dtau < path.nbeads; dtau++) {
+        for (int tau = 0; tau < path.nbeads; tau++) {
+            taup = (tau + dtau) % path.nbeads;
+            accmltr_ctau[dtau] += path.pos[tau] * path.pos[taup];
+        }
+        accmltr_ctau[dtau] /= path.nbeads;
+    }
+    ccount++;
+
+    if (ccount % nbins == 0) {
+        for (int dtau = 0; dtau < path.nbeads; dtau++) {
+            ctau[cidx][dtau] = accmltr_ctau[dtau] / nbins;
+            accmltr_ctau[dtau] = 0.0;
+        }
+        cidx++;
+    }
+}
+
 void Estimator::output() {
     pair<double, double> en, cv;
     FILE* fp;
-
+    
+    // output estimators
     fp = fopen("estimator.dat", "w");
     fprintf(fp, "# <E>                <Cv>\n");
     for (int i = 0; i < len; i++) {
@@ -190,6 +217,16 @@ void Estimator::output() {
     
     std::cout << "E = " << en.first << " +/- " << en.second << std::endl;
     std::cout << "Cv = " << cv.first << " +/- " << cv.second << std::endl;
+
+    // output imaginary-time correlation function
+    fp = fopen("D:\\ctau.dat", "w");
+    for (auto c : ctau) {
+        for (auto ct : c) {
+            fprintf(fp, "%20.12lf", ct);
+        }
+        fprintf(fp, "%20.12lf\n", c.front());
+    }
+    fclose(fp);
 }
 
 double Estimator::calc_pot(double pos) {
