@@ -28,7 +28,7 @@ Path::~Path() {
 void Path::move_bisection(mt19937_64* gen) {
     int acc = 1;
     double en_dpot = 0.0;
-    double slt = sqrt(beta / nbeads);
+    double slt = sqrt(0.5 * beta / nbeads);
     vector<double> tmp_pos;
 
     // random distribution
@@ -112,13 +112,14 @@ void Path::move_com(double max_disp, mt19937_64* gen) {
 }
 
 double Path::calc_pot(double _pos) {
-    // let hbar = omega = k_B = (hbar^2/2m) = 1
+    // let hbar = k_B = m = 1, omega = 10
     // potential of harmonic oscillator: V = 1/2 m w^2 x^2
-    return 0.25 * _pos * _pos / nbeads;
+    // return 0.25 * _pos * _pos / nbeads;
+    return 50 * _pos * _pos / nbeads;
 }
 
 double Path::calc_kin() {
-    // let hbar = omega = k_B = (hbar^2/2m) = 1
+    // let hbar = k_B = m = 1
     double omega_p2 = nbeads / (beta * beta);
     double en_spring = 0.0;
 
@@ -127,7 +128,8 @@ double Path::calc_kin() {
         en_spring += (pos[next_bead] - pos[ibead]) * (pos[next_bead] - pos[ibead]);
     }
 
-    return 0.25 * omega_p2 * en_spring;
+    // return 0.25 * omega_p2 * en_spring;
+    return 0.5 * omega_p2 * en_spring;
 }
 
 void Path::calc_toten() {

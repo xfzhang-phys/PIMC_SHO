@@ -15,7 +15,7 @@ int main(int argc, char** argv) {
     // timer
     auto start = steady_clock::now();
 
-    Input input_params(64, 1e7, 2e6, 1e5, 1.0, 0.5, -2.0, 2.0, 0.01, "PCV");
+    Input input_params(64, 5e6, 1e6, 1e4, 1.0, 0.05, -2.0, 2.0, 0.01, "PCV");
     // read parameters from command line
     if (argc > 1) {
         input_params.get_input_params(argc, argv);
@@ -33,11 +33,11 @@ int main(int argc, char** argv) {
         if (input_params.nbeads > 1) {
             path.move_bisection(&gen);
         }
-        path.move_com(input_params.max_disp, &gen);
+        // path.move_com(input_params.max_disp, &gen);
 
         // auto update max_disp
         if (istep % 100 == 0 && istep > 0) {
-            path.update_com_max_disp(&(input_params.max_disp));
+            // path.update_com_max_disp(&(input_params.max_disp));
         }
     }
 
@@ -46,7 +46,7 @@ int main(int argc, char** argv) {
         if (input_params.nbeads > 1) {
             path.move_bisection(&gen);
         }
-        path.move_com(input_params.max_disp, &gen);
+        // path.move_com(input_params.max_disp, &gen);
 
         // accumulator
         estimator.accumulate(path);
@@ -57,7 +57,7 @@ int main(int argc, char** argv) {
 
         // auto update max_disp
         if (istep % 100 == 0 && istep > 0) {
-            path.update_com_max_disp(&(input_params.max_disp));
+            // path.update_com_max_disp(&(input_params.max_disp));
         }
     }
 

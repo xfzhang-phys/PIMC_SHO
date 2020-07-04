@@ -184,15 +184,15 @@ void Estimator::accumulate_ctau(Path path) {
     for (int dtau = 0; dtau < path.nbeads; dtau++) {
         for (int tau = 0; tau < path.nbeads; tau++) {
             taup = (tau + dtau) % path.nbeads;
+            // accmltr_ctau[dtau] += (path.pos[tau] - path.pos_com) * (path.pos[taup] - path.pos_com);
             accmltr_ctau[dtau] += path.pos[tau] * path.pos[taup];
         }
-        accmltr_ctau[dtau] /= path.nbeads;
     }
     ccount++;
 
     if (ccount % nbins == 0) {
         for (int dtau = 0; dtau < path.nbeads; dtau++) {
-            ctau[cidx][dtau] = accmltr_ctau[dtau] / nbins;
+            ctau[cidx][dtau] = accmltr_ctau[dtau] / nbins / path.nbeads;
             accmltr_ctau[dtau] = 0.0;
         }
         cidx++;
@@ -230,13 +230,15 @@ void Estimator::output() {
 }
 
 double Estimator::calc_pot(double pos) {
-    return 0.25 * pos * pos;
+    // return 0.25 * pos * pos;
+    return 50 * pos * pos;
 }
 
 double Estimator::calc_kcv(Path path) {
     double ycp = 0.0;
     for (int i = 0; i < path.nbeads; i++) {
-        ycp += (path.pos[i] - path.pos_com) * 0.5 * path.pos[i];
+        // ycp += (path.pos[i] - path.pos_com) * 0.5 * path.pos[i];
+        ycp += (path.pos[i] - path.pos_com) * 100 * path.pos[i];
     }
     ycp /= 2 * path.nbeads;
 
